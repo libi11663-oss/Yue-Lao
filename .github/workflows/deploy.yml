@@ -1,0 +1,25 @@
+name: Deploy Edge Function
+
+on:
+  push:
+    branches:
+      - main # 當你推送到 main 分支時自動觸發
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy Function
+        run: |
+          supabase functions deploy payuni-create-order --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
