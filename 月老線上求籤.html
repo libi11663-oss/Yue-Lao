@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月老線上求籤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lacquer:#1b1210;
+    --lacquer-2:#2a1a17;
+    --wine:#7c1f2b;
+    --wine-deep:#5c141e;
+    --gold:#c9a15a;
+    --gold-bright:#e8c581;
+    --paper:#efe4cd;
+    --paper-2:#e3d3ac;
+    --thread:#c23b3b;
+    --ink:#2b2320;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, #3a2020 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 120%, #241413 0%, transparent 60%),
+      linear-gradient(180deg, var(--lacquer) 0%, #120c0b 100%);
+    color:var(--paper);
+    font-family:"Noto Serif TC", serif;
+    overflow-x:hidden;
+  }
+
+  /* floating embers */
+  .embers{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
+  .ember{
+    position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;
+    background:radial-gradient(circle, var(--gold-bright), transparent 70%);
+    opacity:0;animation:rise linear infinite;
+  }
+  @keyframes rise{
+    0%{transform:translateY(0) translateX(0);opacity:0;}
+    10%{opacity:.8;}
+    90%{opacity:.5;}
+    100%{transform:translateY(-100vh) translateX(20px);opacity:0;}
+  }
+
+  .wrap{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:36px 20px 80px;text-align:center;}
+
+  /* header */
+  .seal{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:46px;height:46px;background:var(--thread);border:2px solid var(--gold-bright);
+    color:var(--paper);font-family:"Ma Shan Zheng",cursive;font-size:22px;
+    box-shadow:0 0 0 2px var(--lacquer), 0 4px 10px rgba(0,0,0,.5);
+    transform:rotate(-4deg);
+    cursor:pointer;
+    transition:transform .2s ease;
+  }
+  .seal:hover{transform:rotate(-4deg) scale(1.06);}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;}
+  .help-btn{
+    background:none;border:1px solid var(--gold);color:var(--gold-bright);
+    border-radius:999px;width:34px;height:34px;font-size:15px;cursor:pointer;
+    font-family:"Noto Serif TC",serif;
+  }
+
+  h1.title{
+    font-family:"Ma Shan Zheng",cursive;
+    font-size:clamp(48px,10vw,72px);
+    color:var(--gold-bright);
+    margin:6px 0 2px;
+    letter-spacing:6px;
+    text-shadow:0 0 24px rgba(232,197,129,.35), 0 2px 0 rgba(0,0,0,.4);
+  }
+  .subtitle{
+    color:var(--paper-2);opacity:.8;font-size:14px;letter-spacing:4px;margin-bottom:28px;
+  }
+
+  .divider{
+    width:120px;height:1px;margin:18px auto;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+
+  /* incense altar */
+  .altar{margin:10px auto 30px;position:relative;width:180px;height:150px;}
+  .censer{
+    position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+    width:90px;height:56px;border-radius:0 0 40px 40px / 0 0 24px 24px;
+    background:linear-gradient(180deg,#3d2b1e,#241712);
+    border:2px solid var(--gold);
+    box-shadow:inset 0 6px 10px rgba(0,0,0,.5);
+  }
+  .censer:before{
+    content:"";position:absolute;top:-8px;left:-6px;right:-6px;height:14px;
+    background:linear-gradient(180deg,#4a3625,#2c1c15);border-radius:6px;border:1px solid var(--gold);
+  }
+  .incense{
+    position:absolute;bottom:44px;left:50%;width:2px;height:46px;
+    background:linear-gradient(180deg,#8a6a45,#3a2a1c);transform:translateX(-14px) rotate(-4deg);
+    box-shadow:20px 0 0 -1px #8a6a45;
+  }
+  .smoke{
+    position:absolute;bottom:88px;left:50%;width:6px;height:6px;border-radius:50%;
+    background:rgba(230,220,200,.5);filter:blur(3px);
+    animation:smoke 4.5s ease-in infinite;
+  }
+  .smoke.s2{left:calc(50% + 16px);animation-delay:1.5s;}
+  .smoke.s3{left:calc(50% - 14px);animation-delay:3s;}
+  @keyframes smoke{
+    0%{transform:translate(0,0) scale(1);opacity:0;}
+    15%{opacity:.55;}
+    100%{transform:translate(14px,-90px) scale(3.2);opacity:0;}
+  }
+
+  /* panels */
+  .panel{
+    background:linear-gradient(180deg, rgba(239,228,205,.06), rgba(239,228,205,.02));
+    border:1px solid rgba(201,161,90,.35);
+    border-radius:6px;
+    padding:26px 22px;
+    margin:20px 0;
+  }
+  .lead{color:var(--paper-2);font-size:15px;line-height:1.9;margin:0 0 18px;}
+  .lead b{color:var(--gold-bright);font-weight:600;}
+
+  button.action{
+    font-family:"Noto Serif TC",serif;font-weight:600;font-size:17px;letter-spacing:3px;
+    color:var(--lacquer);
+    background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+    border:none;border-radius:4px;padding:13px 34px;cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  button.action:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.4);}
+  button.action:active{transform:translateY(0);}
+  button.action:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  button.ghost{
+    font-family:"Noto Serif TC",serif;
+    background:transparent;border:1px solid var(--gold);color:var(--gold-bright);
+    border-radius:4px;padding:10px 24px;font-size:14px;letter-spacing:2px;cursor:pointer;margin-top:14px;
+  }
+
+  /* jiao blocks */
+  .jiao-stage{display:flex;justify-content:center;gap:26px;margin:24px 0;min-height:90px;align-items:center;}
+  .jiao{
+    width:56px;height:90px;position:relative;perspective:400px;
+  }
+  .jiao-face{
+    width:100%;height:100%;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;letter-spacing:2px;color:var(--paper);
+    transition:transform .15s;
+  }
+  .jiao-face.round{background:linear-gradient(160deg,var(--thread),var(--wine-deep));border:2px solid var(--gold);box-shadow:inset -6px -6px 12px rgba(0,0,0,.35), 0 6px 10px rgba(0,0,0,.4);}
+  .jiao-face.flat{background:linear-gradient(160deg,#241513,#150c0b);border:2px solid #4a3020;box-shadow:inset 4px 4px 10px rgba(0,0,0,.5);}
+  .jiao.tossing .jiao-face{animation:toss .9s ease-in-out;}
+  @keyframes toss{
+    0%{transform:translateY(0) rotate(0);}
+    30%{transform:translateY(-46px) rotate(180deg);}
+    55%{transform:translateY(-10px) rotate(340deg);}
+    75%{transform:translateY(-22px) rotate(420deg);}
+    100%{transform:translateY(0) rotate(720deg);}
+  }
+
+  .jiao-result{font-size:20px;letter-spacing:4px;margin:8px 0 2px;font-weight:700;}
+  .jiao-result.shengjiao{color:#8fd19e;}
+  .jiao-result.xiaojiao{color:var(--gold-bright);}
+  .jiao-result.yinjiao{color:#d98686;}
+  .jiao-note{font-size:13px;color:var(--paper-2);opacity:.85;margin-bottom:8px;}
+
+  /* draw cup */
+  .cup-wrap{display:flex;justify-content:center;margin:22px 0 8px;}
+  .cup{
+    position:relative;width:100px;height:100px;
+  }
+  .cup-body{
+    position:absolute;bottom:0;width:100px;height:66px;border-radius:6px 6px 16px 16px / 6px 6px 26px 26px;
+    background:linear-gradient(180deg,#3d2b1e,#241712);border:2px solid var(--gold);
+  }
+  .stick{
+    position:absolute;bottom:44px;width:4px;height:60px;
+    background:linear-gradient(180deg,#d8c48a,#a98a54);
+    border-radius:2px 2px 0 0;
+    transform-origin:bottom center;
+  }
+  .stick:nth-child(1){left:30px;transform:rotate(-10deg);}
+  .stick:nth-child(2){left:42px;transform:rotate(-3deg);}
+  .stick:nth-child(3){left:54px;transform:rotate(4deg);}
+  .stick:nth-child(4){left:66px;transform:rotate(11deg);}
+  .stick.flying{
+    animation:fly-out 1s ease-in forwards;
+  }
+  @keyframes fly-out{
+    0%{transform:translateY(0) rotate(-3deg);}
+    40%{transform:translateY(-90px) rotate(20deg);}
+    100%{transform:translateY(-40px) rotate(15deg);opacity:0;}
+  }
+  .cup.shaking{animation:shake .5s ease-in-out 2;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0) rotate(0);}
+    25%{transform:translateX(-4px) rotate(-2deg);}
+    75%{transform:translateX(4px) rotate(2deg);}
+  }
+
+  /* slip result - traditional vertical ticket layout */
+  .slip{
+    background:
+      linear-gradient(180deg, rgba(239,228,205,.08), rgba(239,228,205,.03)),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 38px, rgba(201,161,90,.06) 38px 39px);
+    border:1px solid var(--gold);
+    border-radius:4px;
+    padding:0 0 26px;
+    position:relative;
+    margin-top:26px;
+    overflow:hidden;
+  }
+  .slip-plaque{
+    background:linear-gradient(180deg,var(--thread),var(--wine-deep));
+    border-bottom:2px solid var(--gold);
+    padding:12px 10px 10px;
+    text-align:center;
+  }
+  .slip-plaque .site-name{
+    font-family:"Ma Shan Zheng",cursive;color:var(--gold-bright);
+    font-size:22px;letter-spacing:6px;
+  }
+  .slip-plaque .kind-name{
+    font-size:12px;letter-spacing:5px;color:var(--paper-2);opacity:.9;margin-top:2px;
+  }
+  .slip-body{
+    display:flex;flex-direction:row-reverse;align-items:stretch;justify-content:center;
+    gap:18px;padding:26px 20px 10px;min-height:220px;
+  }
+  .slip-num-vert{
+    writing-mode:vertical-rl;text-orientation:upright;
+    font-family:"Ma Shan Zheng",cursive;font-size:26px;letter-spacing:10px;
+    color:var(--gold-bright);
+    text-shadow:0 0 14px rgba(232,197,129,.4);
+    padding:4px 2px;
+  }
+  .tag-vert{
+    display:flex;flex-direction:column;gap:14px;justify-content:center;
+  }
+  .tag-vert .tag-item{
+    writing-mode:vertical-rl;text-orientation:upright;
+    font-size:12.5px;letter-spacing:4px;color:var(--paper-2);
+    border:1px solid rgba(201,161,90,.45);border-radius:3px;
+    padding:8px 4px;background:rgba(0,0,0,.15);
+  }
+  .tag-vert .tag-item b{color:var(--gold-bright);font-weight:600;}
+  .tag-item.grade-good b{color:#f2c85b;}
+  .tag-item.grade-mid b{color:#c9b48a;}
+  .tag-item.grade-bad b{color:#d16a5f;}
+  .poem-vert{
+    display:flex;flex-direction:row-reverse;gap:16px;
+    align-items:center;
+  }
+  .poem-vert span{
+    writing-mode:vertical-rl;text-orientation:upright;
+    font-size:21px;line-height:1.9;letter-spacing:10px;
+    color:var(--paper);font-weight:500;
+  }
+  .ganzhi-tag{
+    display:inline-block;font-size:12px;letter-spacing:2px;color:var(--paper-2);
+    opacity:.75;border:1px solid rgba(201,161,90,.4);border-radius:999px;
+    padding:2px 12px;margin:4px 0 2px;
+  }
+  .meaning-block{
+    padding:14px 24px 4px;
+    border-top:1px dashed rgba(201,161,90,.4);
+    margin:6px 20px 0;
+  }
+  .meaning-title{
+    font-family:"Ma Shan Zheng",cursive;color:var(--gold-bright);
+    font-size:20px;letter-spacing:4px;margin-bottom:10px;text-align:left;
+  }
+  .meaning-text{
+    text-align:justify;color:var(--paper-2);font-size:14.5px;line-height:2.05;
+    letter-spacing:.5px;
+  }
+
+  .footnote{margin-top:34px;font-size:12px;color:var(--paper-2);opacity:.55;letter-spacing:1px;}
+
+  @media (max-width:480px){
+    .poem-vert span{font-size:17px;letter-spacing:7px;}
+    .slip-num-vert{font-size:20px;letter-spacing:7px;}
+    .slip-body{gap:10px;padding:22px 10px 6px;}
+  }
+
+
+  /* modal */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(10,6,5,.78);backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;z-index:50;
+    padding:20px;
+  }
+  .modal{
+    max-width:420px;width:100%;
+    background:linear-gradient(180deg,#241613,#1a100e);
+    border:1px solid var(--gold);border-radius:6px;
+    padding:30px 26px 26px;text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+  }
+  .modal h2{
+    font-family:"Ma Shan Zheng",cursive;color:var(--gold-bright);font-size:30px;margin:0 0 14px;letter-spacing:2px;
+  }
+  .modal p{color:var(--paper-2);font-size:14.5px;line-height:2;margin:0 0 22px;text-align:left;}
+  .modal p b{color:var(--gold-bright);}
+  .hidden{display:none !important;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001s !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="embers" id="embers"></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="seal" title="關於月老">月老</div>
+    <div style="display:flex;gap:8px;">
+      <button class="help-btn" id="soundToggle" title="開關音效">🔊</button>
+      <button class="help-btn" id="reopenHelp" title="重新查看說明">?</button>
+    </div>
+  </div>
+
+  <h1 class="title">月老線上求籤</h1>
+  <div class="subtitle">紅　線　牽　姻　緣</div>
+
+  <div class="altar">
+    <div class="incense"></div>
+    <div class="smoke"></div>
+    <div class="smoke s2"></div>
+    <div class="smoke s3"></div>
+    <div class="censer"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- STEP 1: 擲筊 -->
+  <div class="panel" id="jiaoPanel">
+    <p class="lead">請先在心中默念自己的<b>姓名</b>、<b>生日</b>與<b>住址</b>（若有生辰八字更佳），心誠則靈，接著擲筊請示月老是否同意賜籤。</p>
+
+    <div class="jiao-stage" id="jiaoStage">
+      <div class="jiao" id="jiao1"><div class="jiao-face round">正</div></div>
+      <div class="jiao" id="jiao2"><div class="jiao-face round">正</div></div>
+    </div>
+
+    <div id="jiaoResultText"></div>
+
+    <button class="action" id="throwBtn">擲　筊</button>
+  </div>
+
+  <!-- STEP 2: 抽籤 -->
+  <div class="panel hidden" id="drawPanel">
+    <p class="lead">月老已允筊，請誠心默念心中所求，輕輕抽出屬於你的一支籤。</p>
+    <div class="cup-wrap">
+      <div class="cup" id="cup">
+        <div class="stick"></div>
+        <div class="stick"></div>
+        <div class="stick"></div>
+        <div class="stick"></div>
+        <div class="cup-body"></div>
+      </div>
+    </div>
+    <button class="action" id="drawBtn">抽　籤</button>
+  </div>
+
+  <!-- STEP 3: 結果 -->
+  <div class="slip hidden" id="slipPanel"></div>
+
+  <div class="footnote">採用台灣廟宇通行之「六十甲子籤」全套六十首 · 姻緣詳解僅供參考，仍需自己用心經營 · 誠心祈願，好運自來</div>
+</div>
+
+<!-- Intro Modal -->
+<div class="modal-overlay" id="introOverlay">
+  <div class="modal">
+    <h2>線上月老求籤</h2>
+    <p>線上月老求籤，請先<b>默念自己姓名、生日、住址</b>（最好有生辰八字），接著擲得<b>聖筊</b>即可求籤。</p>
+    <button class="action" id="closeIntro">我　明　白　了</button>
+  </div>
+</div>
+
+<script>
+/* ---------- 音效引擎 (Web Audio 即時合成，無需外部音檔) ---------- */
+let soundOn = true;
+let actx = null;
+let reverbNode = null;
+let audioUnlocked = false;
+
+function ac(){
+  if(!actx){
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if(!AudioContextClass){ soundOn=false; return null; }
+    try{ actx = new AudioContextClass(); }
+    catch(e){ soundOn=false; return null; }
+  }
+  return actx;
+}
+
+/* 手機瀏覽器（尤其 iOS Safari）必須在使用者手勢事件裡建立並恢復 AudioContext。
+   單純建立靜音 buffer 有些手機不會真的開聲音，所以這裡送出一段極短、很小聲的 oscillator。 */
+function unlockAudio(){
+  const ctx=ac();
+  if(!ctx) return;
+
+  const finishUnlock = () => {
+    if(audioUnlocked) return;
+    audioUnlocked = true;
+    try{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.04);
+    }catch(e){}
+  };
+
+  if(ctx.state === 'running'){
+    finishUnlock();
+  }else{
+    ctx.resume().then(finishUnlock).catch(()=>{});
+  }
+}
+['touchstart','touchend','pointerdown','click'].forEach(evt=>{
+  document.addEventListener(evt, unlockAudio, {passive:true});
+});
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && soundOn && actx && actx.state === 'suspended'){
+    actx.resume().catch(()=>{});
+  }
+});
+
+function getReverb(ctx){
+  if(!reverbNode){
+    const duration=2.6, decay=2.8;
+    const length=Math.floor(ctx.sampleRate*duration);
+    const impulse=ctx.createBuffer(2,length,ctx.sampleRate);
+    for(let ch=0; ch<2; ch++){
+      const data=impulse.getChannelData(ch);
+      for(let i=0;i<length;i++){
+        data[i]=(Math.random()*2-1)*Math.pow(1-i/length,decay);
+      }
+    }
+    reverbNode=ctx.createConvolver();
+    reverbNode.buffer=impulse;
+    const tail=ctx.createGain(); tail.gain.value=0.55;
+    reverbNode.connect(tail).connect(ctx.destination);
+  }
+  return reverbNode;
+}
+
+/* 木頭清脆敲擊聲：用於筊杯落地。雙層設計 —
+   高頻短暫的「叩」聲(木頭表面撞擊) + 中低頻共鳴體(木頭空腔回響) */
+function playWoodKnock(pitch=1, volume=0.9){
+  if(!soundOn) return;
+  const ctx=ac(); if(!ctx) return;
+  const t=ctx.currentTime;
+
+  // 撞擊瞬間的高頻噪音(清脆感)
+  const clickLen=Math.floor(ctx.sampleRate*0.02);
+  const clickBuf=ctx.createBuffer(1,clickLen,ctx.sampleRate);
+  const clickData=clickBuf.getChannelData(0);
+  for(let i=0;i<clickLen;i++){ clickData[i]=(Math.random()*2-1)*Math.pow(1-i/clickLen,2); }
+  const clickSrc=ctx.createBufferSource(); clickSrc.buffer=clickBuf;
+  const clickHP=ctx.createBiquadFilter(); clickHP.type='highpass'; clickHP.frequency.value=2600*pitch;
+  const clickG=ctx.createGain();
+  clickG.gain.setValueAtTime(volume*0.7,t);
+  clickG.gain.exponentialRampToValueAtTime(0.001,t+0.025);
+  clickSrc.connect(clickHP).connect(clickG).connect(ctx.destination);
+  clickSrc.start(t); clickSrc.stop(t+0.03);
+
+  // 木頭空腔共鳴body(短促、帶Q值的band-pass敲擊音)
+  const bodyLen=Math.floor(ctx.sampleRate*0.14);
+  const bodyBuf=ctx.createBuffer(1,bodyLen,ctx.sampleRate);
+  const bodyData=bodyBuf.getChannelData(0);
+  for(let i=0;i<bodyLen;i++){ bodyData[i]=(Math.random()*2-1)*Math.pow(1-i/bodyLen,2.2); }
+  const bodySrc=ctx.createBufferSource(); bodySrc.buffer=bodyBuf;
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass';
+  bp.frequency.value=(1100+Math.random()*140)*pitch; bp.Q.value=9;
+  const bodyG=ctx.createGain();
+  bodyG.gain.setValueAtTime(volume,t+0.002);
+  bodyG.gain.exponentialRampToValueAtTime(0.001,t+0.13);
+  bodySrc.connect(bp).connect(bodyG).connect(ctx.destination);
+  bodySrc.start(t); bodySrc.stop(t+0.14);
+
+  // 低頻厚度(木頭沉沉的底聲)
+  const osc=ctx.createOscillator(); osc.type='triangle';
+  osc.frequency.setValueAtTime(210*pitch,t);
+  osc.frequency.exponentialRampToValueAtTime(85*pitch,t+0.1);
+  const og=ctx.createGain();
+  og.gain.setValueAtTime(volume*0.45,t);
+  og.gain.exponentialRampToValueAtTime(0.001,t+0.12);
+  osc.connect(og).connect(ctx.destination);
+  osc.start(t); osc.stop(t+0.13);
+}
+function playTock(){ playWoodKnock(1.9,0.4); }
+
+/* 一堆竹木籤在籤筒裡搖晃碰撞的顆粒音效：
+   用大量隨機時間點、隨機音高、極短促的細碎「沙沙／喀啦」聲堆疊，
+   模擬多支木籤彼此摩擦碰撞的搖晃質感，而非單一敲擊聲 */
+function playStickShake(durationMs=1000){
+  if(!soundOn) return;
+  const grains=Math.floor(durationMs/16);
+  for(let i=0;i<grains;i++){
+    const delay=Math.random()*durationMs;
+    setTimeout(()=>{
+      const ctx=ac(); if(!ctx) return;
+      const t=ctx.currentTime;
+      const len=Math.floor(ctx.sampleRate*0.03);
+      const buf=ctx.createBuffer(1,len,ctx.sampleRate);
+      const data=buf.getChannelData(0);
+      for(let j=0;j<len;j++){ data[j]=(Math.random()*2-1)*Math.pow(1-j/len,3.5); }
+      const src=ctx.createBufferSource(); src.buffer=buf;
+      const bp=ctx.createBiquadFilter(); bp.type='bandpass';
+      bp.frequency.value=2200+Math.random()*3200; bp.Q.value=3.5+Math.random()*2;
+      const g=ctx.createGain();
+      const vol=0.14+Math.random()*0.12;
+      g.gain.setValueAtTime(vol,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.03);
+      src.connect(bp).connect(g).connect(ctx.destination);
+      src.start(t); src.stop(t+0.035);
+    }, delay);
+  }
+  // 底層再疊一層低頻悶響，模擬籤筒木壁被搖動的沉悶共鳴
+  for(let i=0;i<Math.floor(durationMs/220);i++){
+    setTimeout(()=>playWoodKnock(0.65+Math.random()*0.15, 0.22), i*220+Math.random()*60);
+  }
+}
+
+/* 抽籤時竹籤飛出的咻聲 */
+function playWhoosh(){
+  if(!soundOn) return;
+  const ctx=ac(); if(!ctx) return;
+  const t=ctx.currentTime;
+  const bufferSize=Math.floor(ctx.sampleRate*0.5);
+  const buffer=ctx.createBuffer(1,bufferSize,ctx.sampleRate);
+  const data=buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++){ data[i]=Math.random()*2-1; }
+  const noise=ctx.createBufferSource(); noise.buffer=buffer;
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=0.8;
+  bp.frequency.setValueAtTime(400,t);
+  bp.frequency.exponentialRampToValueAtTime(2200,t+0.45);
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(0.3,t+0.12);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+  noise.connect(bp).connect(g).connect(ctx.destination);
+  noise.start(t); noise.stop(t+0.5);
+}
+
+/* 神聖鐘磬共鳴聲：使用不完全泛音比例(似鐘/頌缽)加上些微
+   去諧微分音互相拍頻，並送一路訊號進殘響單元，做出空間共鳴尾韻。
+   tier: 1=聖筊(明亮悠遠) 2=笑筊(温和平靜) 3=陰筊(低沉深遠) */
+function playChime(tier=1){
+  if(!soundOn) return;
+  const ctx=ac(); if(!ctx) return;
+  const t=ctx.currentTime;
+  const verb=getReverb(ctx);
+
+  let base, partials, decay, wet;
+  if(tier===1){ base=523.25; partials=[1,2.756,4.185,5.43,6.98]; decay=2.4; wet=0.5; }
+  else if(tier===2){ base=440; partials=[1,2.4,3.8,5.1]; decay=1.9; wet=0.4; }
+  else { base=293.66; partials=[1,2.0,3.28,4.4]; decay=2.1; wet=0.55; }
+
+  partials.forEach((p,idx)=>{
+    [ -3, 3 ].forEach((cents)=>{
+      const osc=ctx.createOscillator(); osc.type='sine';
+      const freq=base*p*Math.pow(2,cents/1200);
+      osc.frequency.value=freq;
+      const g=ctx.createGain();
+      const startG=(0.42/(idx+1))*0.5;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(startG,t+0.05+idx*0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+decay);
+
+      const dry=ctx.createGain(); dry.gain.value=1-wet;
+      const send=ctx.createGain(); send.gain.value=wet;
+
+      osc.connect(g);
+      g.connect(dry).connect(ctx.destination);
+      g.connect(send).connect(verb);
+
+      osc.start(t); osc.stop(t+decay+0.1);
+    });
+  });
+}
+
+const soundToggle=document.getElementById('soundToggle');
+soundToggle.addEventListener('click',()=>{
+  soundOn=!soundOn;
+  soundToggle.textContent = soundOn ? '🔊' : '🔇';
+  if(soundOn){ unlockAudio(); playTock(); }
+});
+
+/* ---------- ember particles ---------- */
+const emberBox = document.getElementById('embers');
+for(let i=0;i<26;i++){
+  const e=document.createElement('div');
+  e.className='ember';
+  e.style.left=Math.random()*100+'%';
+  e.style.animationDuration=(8+Math.random()*10)+'s';
+  e.style.animationDelay=(Math.random()*10)+'s';
+  emberBox.appendChild(e);
+}
+
+/* ---------- modal ---------- */
+const introOverlay=document.getElementById('introOverlay');
+document.getElementById('closeIntro').addEventListener('click',()=>{unlockAudio();playTock();introOverlay.classList.add('hidden');});
+document.getElementById('reopenHelp').addEventListener('click',()=>{unlockAudio();playTock();introOverlay.classList.remove('hidden');});
+document.querySelector('.seal').addEventListener('click',()=>{unlockAudio();playTock();introOverlay.classList.remove('hidden');});
+
+/* ---------- 擲筊 logic ---------- */
+const throwBtn=document.getElementById('throwBtn');
+const jiao1=document.getElementById('jiao1');
+const jiao2=document.getElementById('jiao2');
+const jiaoResultText=document.getElementById('jiaoResultText');
+const drawPanel=document.getElementById('drawPanel');
+
+function setFace(jiaoEl, round){
+  jiaoEl.innerHTML = round
+    ? '<div class="jiao-face round">正</div>'
+    : '<div class="jiao-face flat">反</div>';
+}
+
+throwBtn.addEventListener('click',()=>{
+  unlockAudio();
+  playTock();
+  throwBtn.disabled=true;
+  jiaoResultText.innerHTML='';
+  jiao1.classList.add('tossing');
+  jiao2.classList.add('tossing');
+
+  const f1 = Math.random()<0.5;
+  const f2 = Math.random()<0.5;
+
+  setTimeout(()=>{
+    jiao1.classList.remove('tossing');
+    jiao2.classList.remove('tossing');
+    setFace(jiao1,f1);
+    setFace(jiao2,f2);
+    playWoodKnock(1.15,0.95);
+    setTimeout(()=>playWoodKnock(0.85,0.85),95);
+
+    const sum=(f1?1:0)+(f2?1:0);
+    let html='';
+    if(sum===1){
+      html='<div class="jiao-result shengjiao">聖　筊</div><div class="jiao-note">月老已允筊，可以求籤了</div>';
+      jiaoResultText.innerHTML=html;
+      drawPanel.classList.remove('hidden');
+      throwBtn.textContent='重　新　擲　筊';
+      throwBtn.disabled=false;
+      setTimeout(()=>playChime(1),260);
+    } else if(sum===2){
+      html='<div class="jiao-result xiaojiao">笑　筊</div><div class="jiao-note">月老暫無明確指示，請靜心再擲一次</div>';
+      jiaoResultText.innerHTML=html;
+      drawPanel.classList.add('hidden');
+      throwBtn.disabled=false;
+      setTimeout(()=>playChime(2),260);
+    } else {
+      html='<div class="jiao-result yinjiao">陰　筊</div><div class="jiao-note">此刻機緣尚未成熟，請靜心後再擲一次</div>';
+      jiaoResultText.innerHTML=html;
+      drawPanel.classList.add('hidden');
+      throwBtn.disabled=false;
+      setTimeout(()=>playChime(3),260);
+    }
+  },900);
+});
+
+/* ---------- 籤詩資料庫：六十甲子籤 ----------
+   六十甲子籤是台灣廟宇（媽祖廟、城隍廟、天公廟、月老宮等）最普遍使用的籤詩系統，
+   共六十首，依六十干支排序。詩文為傳統流傳版本，姻緣解籤內容為針對月老求籤情境所作之詳細解說。
+   等級：1=上上籤 2=上籤 3=中平籤 4=中下籤 5=下下籤（依籤詩傳統吉凶意涵歸納，僅供參考） */
+const SLIPS=[
+{id:1,ganzhi:"甲子",level:1,label:"上上籤",poem:["日出便見風雲散","光明清淨照世間","一向前途通大道","萬事清吉保平安"],
+ meaning:"感情如撥雲見日，過去的陰霾、誤會、猶豫都將煙消雲散。這是六十籤中數一數二的吉籤，象徵姻緣一片光明坦途，不論是已有對象或仍待有緣人出現，都可放心前進，好事將接連而來，家人也會樂觀其成。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:2,ganzhi:"甲寅",level:2,label:"上籤",poem:["於今此景正當時","看看欲吐百花魁","若能遇得春色到","一洒清吉脫塵埃"],
+ meaning:"時機正好，如含苞待放的花朵即將盛開。若你正猶豫是否該告白或更進一步，此時正是最佳時機，把握眼前春意，姻緣將如花綻放，一掃過去的陰霾與塵埃。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:3,ganzhi:"甲辰",level:1,label:"上上籤",poem:["勸君把定心莫虛","天註衣祿自有餘","和合重重常吉慶","時來終遇得明珠"],
+ meaning:"這支籤明白指出姻緣早由上天注定，勸你不必心浮氣躁、患得患失，只要安定心神，終將遇見那顆屬於你的明珠，和合美滿，喜慶重重。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:4,ganzhi:"甲午",level:1,label:"上上籤",poem:["風恬浪靜可行舟","恰是中秋月一輪","凡事不須多憂慮","福祿自有慶家門"],
+ meaning:"感情運勢平順如風平浪靜的江面，好比中秋圓月，象徵團圓美滿。此時不需杞人憂天，無論交往、論及婚嫁都相當合適，福氣自然降臨家門。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:5,ganzhi:"甲申",level:4,label:"中下籤",poem:["只恐前途命有變","勸君作急可宜先","且守長江無大事","命逢太白守身邊"],
+ meaning:"此籤提醒感情可能生變，若心中有想做的決定（告白、求婚、攤牌）宜盡早行動，不宜拖延。同時也象徵此時身邊會有貴人相助，只要守住本心，可保平安無事。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:6,ganzhi:"甲戌",level:5,label:"下下籤",poem:["風雲致雨落洋洋","天災時氣必有傷","命內此事難和合","更逢一足出外鄉"],
+ meaning:"感情路上恐有風雨波折，雙方理念或家庭背景差異較大，短期內較難圓滿和合，可能也會有一方需離鄉背井、遠距離的考驗。建議暫緩重大決定，先讓風雨過去，勿強求。　整體而言，此籤語氣較為保留，顯示這段緣分目前面臨較大的阻礙或不確定性，若一味勉強強求，恐怕徒增雙方的疲憊與傷害，甚至傷了和氣。建議暫時放寬心，不必執著於單一結果或單一對象，月老牽紅線自有其安排的時序；把心力放回自己身上、充實生活、廣結善緣，往往才是迎接下一段好姻緣最踏實的準備。"},
+{id:7,ganzhi:"乙丑",level:1,label:"上上籤",poem:["雲開月出正分明","不須進退問前程","婚姻皆由天註定","和合清吉萬事成"],
+ meaning:"這是六十甲子籤中最直接點名「婚姻」二字的一支籤，雲霧散去、月光皎潔，象徵姻緣清楚明朗，不必再猶豫進退。月老已為你牽定紅線，只管安心前行，終能修成正果。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:8,ganzhi:"乙卯",level:1,label:"上上籤",poem:["禾稻看看結成完","此事必定兩相全","回到家中寬心坐","妻兒鼓舞樂團圓"],
+ meaning:"禾稻結穗象徵辛苦耕耘終見收穫，這段感情將修成正果，雙方皆能圓滿。此籤也常用來指婚後家庭和樂、兒女承歡膝下，是相當團圓美滿的一支籤。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:9,ganzhi:"乙巳",level:4,label:"中下籤",poem:["龍虎相隨在深山","君爾何須背後看","不知此去相愛愉","他日與我卻無干"],
+ meaning:"此籤提醒你留意這段感情是否只是一時的迷戀，對方的心意可能與你想像有落差，「他日與我卻無干」暗示日後恐生變故，宜多觀察對方的真心，勿一頭熱栽入。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:10,ganzhi:"乙未",level:5,label:"下下籤",poem:["花開結子一半枯","可惜今年汝虛度","漸漸日落西山去","勸君不用向前途"],
+ meaning:"花開一半枯萎，象徵這段緣分開花但難結果，若持續勉強，只怕徒然浪費光陰、錯過真正對的人。此籤勸你不必執著在眼前這段感情，放寬心，才能迎接下一段更合適的緣分。　整體而言，此籤語氣較為保留，顯示這段緣分目前面臨較大的阻礙或不確定性，若一味勉強強求，恐怕徒增雙方的疲憊與傷害，甚至傷了和氣。建議暫時放寬心，不必執著於單一結果或單一對象，月老牽紅線自有其安排的時序；把心力放回自己身上、充實生活、廣結善緣，往往才是迎接下一段好姻緣最踏實的準備。"},
+{id:11,ganzhi:"乙酉",level:2,label:"上籤",poem:["靈雞漸漸見分明","凡事且看子丑寅","雲開月出照天下","郎君即便見太平"],
+ meaning:"靈雞報曉，象徵黎明將至，事情會漸漸明朗，建議再耐心等待一段時間，雲開月出之後，感情自然撥雲見日，對象也將平安出現或關係穩定下來。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:12,ganzhi:"乙亥",level:1,label:"上上籤",poem:["長江風浪漸漸靜","于今得進可安寧","必有貴人相扶助","凶事脫出見太平"],
+ meaning:"過去感情中的風浪（爭執、誤會、外界干擾）正逐漸平息，此時是可以放心前進的時機，途中會有貴人從中牽線相助，原本擔憂的凶事也將化解，終見平安和諧。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:13,ganzhi:"丙子",level:5,label:"下下籤",poem:["命中正逢羅孛關","用盡心機總未休","作福問神難得過","恰是行舟上高灘"],
+ meaning:"此籤指出目前姻緣正逢關卡，無論如何費心經營，一時之間都難以突破，如同行船擱淺在高灘上動彈不得。建議不要一味用心機強求，不妨先沉澱自己、累積福德，靜待時機成熟再議。　整體而言，此籤語氣較為保留，顯示這段緣分目前面臨較大的阻礙或不確定性，若一味勉強強求，恐怕徒增雙方的疲憊與傷害，甚至傷了和氣。建議暫時放寬心，不必執著於單一結果或單一對象，月老牽紅線自有其安排的時序；把心力放回自己身上、充實生活、廣結善緣，往往才是迎接下一段好姻緣最踏實的準備。"},
+{id:14,ganzhi:"丙寅",level:2,label:"上籤",poem:["財中漸漸見分明","花開花謝結子成","寬心且看月中桂","郎君即便見太平"],
+ meaning:"感情如同花開花謝之後終於結果，過程或許有起伏，但終將修成正果。此籤也常用來勉勵寬心等待，對的人終將平安出現、關係穩定。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:15,ganzhi:"丙辰",level:3,label:"中平籤",poem:["八十原來是太公","看看晚景遇文王","目下緊事休相問","勸君且守待運通"],
+ meaning:"此籤引姜太公八十歲遇周文王的典故，說明好姻緣往往需要耐心等待，不在乎年齡或時機早晚。眼前若有懸而未決之事，先不急著逼問對方或求結果，守得雲開，運通之日自然遇見賞識你的人。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:16,ganzhi:"丙午",level:5,label:"下下籤",poem:["不須作福不須求","用盡心機總未休","陽世不知陰世事","官法如爐不自由"],
+ meaning:"此籤語氣較為嚴肅，提醒這段感情牽涉的因素超出你能掌控的範圍，即使費盡心機、四處求神，短期內也難有轉圜，建議順其自然，不宜強求或以手段介入。　整體而言，此籤語氣較為保留，顯示這段緣分目前面臨較大的阻礙或不確定性，若一味勉強強求，恐怕徒增雙方的疲憊與傷害，甚至傷了和氣。建議暫時放寬心，不必執著於單一結果或單一對象，月老牽紅線自有其安排的時序；把心力放回自己身上、充實生活、廣結善緣，往往才是迎接下一段好姻緣最踏實的準備。"},
+{id:17,ganzhi:"丙申",level:3,label:"中平籤",poem:["舊恨重重未改為","家中禍患不臨身","須當謹防宜作福","龍蛇交會得和合"],
+ meaning:"過去感情中的舊怨或心結尚未完全化解，但只要謹慎行事、多積善緣，家庭關係不至於受到牽連。只要願意主動和解、放下舊恨，仍有機會重修和合。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:18,ganzhi:"丙戌",level:3,label:"中平籤",poem:["君問中間此言因","看看祿馬拱前程","若得貴人多得利","和合自有兩分明"],
+ meaning:"若想知道這段感情的走向，此籤指出貴人運將至，身邊會有人（媒人、朋友、家人）從中牽線協助，只要把握這股助力，兩人關係將漸漸明朗、修成和合。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:19,ganzhi:"丁丑",level:3,label:"中平籤",poem:["富貴由命天註定","心高必然誤君期","不然且回依舊路","雲開月出自分明"],
+ meaning:"此籤提醒不要好高騖遠、眼光過高而挑花了眼，姻緣自有天定，若一味嫌東嫌西反而容易錯失良緣。不妨放下過高的標準，腳踏實地相處，雲開月出之時自然看得清誰才是對的人。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:20,ganzhi:"丁卯",level:4,label:"中下籤",poem:["前途功名未得意","只恐命內有交加","兩家必定防損失","勸君且退莫咨嗟"],
+ meaning:"這段感情目前的發展尚未如意，雙方或雙方家庭可能因價值觀、經濟或其他因素產生摩擦、甚至損失。此籤建議先退一步，不必急躁怨嘆，給彼此一些時間與空間緩和。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:21,ganzhi:"丁巳",level:1,label:"上上籤",poem:["十方佛法有靈通","大難禍患不相同","紅日當空常照耀","還有貴人到家堂"],
+ meaning:"此籤象徵姻緣受到庇佑，過去若有波折磨難，如今大難將過，如紅日高照般前景光明。家中也將迎來貴人（可能是提親的媒人或未來的另一半登門），是相當吉利的一支籤。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:22,ganzhi:"丁未",level:1,label:"上上籤",poem:["太公家業八十成","月出光輝四海明","命內自然逢大吉","茅屋中間百事亨"],
+ meaning:"同樣引姜太公大器晚成的典故，說明好姻緣不怕晚，只怕心急。此籤顯示感情運勢大吉，即使目前條件普通，只要耐心經營，終能諸事亨通、苦盡甘來。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:23,ganzhi:"丁酉",level:4,label:"中下籤",poem:["欲去長江水闊茫","前途未遂運未通","如今絲綸常在手","只恐魚水不相逢"],
+ meaning:"想要前進追求這段感情，眼前卻如茫茫江水般前路未明，運勢尚未通達。你仍握有主動權，但也提醒彼此若步調不一致，恐怕如魚水難相逢，需要更多耐心磨合時機。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:24,ganzhi:"丁亥",level:1,label:"上上籤",poem:["月出光輝四海明","前途祿位見太平","浮雲掃退終無事","可保禍患不臨身"],
+ meaning:"過去感情中的烏雲（誤會、外界干擾、閒言閒語）終將散去，如月出普照大地，前途一片光明太平。此籤象徵目前的擔憂都只是暫時的，禍患不會真正降臨，感情將順利穩定發展。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:25,ganzhi:"戊子",level:3,label:"中平籤",poem:["總是前途莫心勞","求神問聖枉是多","但看雞犬日過後","不須作福事如何"],
+ meaning:"此籤勸你不必為感情前途過度操心憂慮，即使四處求神問卜也未必能改變結果。不妨再耐心等一段時日，事情自然會有分曉，不必刻意強求。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:26,ganzhi:"戊寅",level:1,label:"上上籤",poem:["選出牡丹第一枝","勸君折取莫遲疑","世間若問相知處","萬事逢春正及時"],
+ meaning:"牡丹象徵富貴美滿的姻緣近在眼前，此籤鼓勵你把握良機、勇敢追求，不要猶豫不決而錯失眼前的好對象。萬事皆逢春，是主動出擊、告白求婚的絕佳時機。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:27,ganzhi:"戊辰",level:1,label:"上上籤",poem:["君爾寬心且自由","門庭清吉家無憂","財寶自然終吉利","凡事無傷不用求"],
+ meaning:"感情運勢平穩安樂，家中也和睦無憂，此籤顯示你不需要為這段感情患得患失、費心強求，只要保持自在寬心的態度，一切自然水到渠成、圓滿吉利。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:28,ganzhi:"戊午",level:4,label:"中下籤",poem:["於今莫作此當時","虎落平陽被犬欺","世間凡事何難定","千山萬水也遲疑"],
+ meaning:"此籤提醒眼前恐非採取行動的好時機，如同猛虎失勢反被欺，若貿然告白或做重大決定，可能會遭遇挫折。感情的路還有許多變數，建議再多觀望，不要急於一時。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:29,ganzhi:"戊申",level:3,label:"中平籤",poem:["枯木可惜未逢春","如今反在暗中藏","寬心且守風霜退","還君依舊作乾坤"],
+ meaning:"這段感情目前正處於低潮期，如枯木尚未逢春，彼此關係或許顯得停滯、疏遠。此籤勸你耐心守候，度過眼前的風霜考驗，春天終將到來，關係也會恢復生機。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:30,ganzhi:"戊戌",level:4,label:"中下籤",poem:["漸漸看此月中和","過後須防未得高","改變顏色前途去","凡事必定見重勞"],
+ meaning:"感情關係目前看似逐漸和緩，但此籤提醒好景可能不會太長久，未來仍需付出不少心力（重勞）才能維持，凡事不可掉以輕心，需持續用心經營才不會功虧一簣。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:31,ganzhi:"己丑",level:1,label:"上上籤",poem:["綠柳蒼蒼正當時","任君此去作乾坤","花果結實無殘謝","福祿自有慶家門"],
+ meaning:"綠柳成蔭，象徵生機蓬勃，此時正是感情發展的大好時機，你可以放心主導這段關係的走向。花果結實而不凋謝，象徵這段緣分將開花結果、長長久久，為家門帶來福氣喜慶。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:32,ganzhi:"己卯",level:3,label:"中平籤",poem:["龍虎相交在門前","此事必定兩相連","黃金忽然變成鐵","何用作福問神仙"],
+ meaning:"龍虎相交象徵兩人個性都較強勢，此事註定會有交集，但也提醒感情的品質可能起伏不定、忽好忽壞。此時不必四處求神問卜，關鍵仍在雙方是否願意用心磨合。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:33,ganzhi:"己巳",level:3,label:"中平籤",poem:["欲去長江水闊茫","行舟把定未遭風","戶內用心再作福","看看魚水得相逢"],
+ meaning:"想要推進這段感情，眼前雖顯得前路茫茫，但只要把持穩定的心態，就不至於遭遇大風大浪。多在家庭、生活細節上用心經營，終能如魚得水，尋得相知相惜的緣分。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:34,ganzhi:"己未",level:2,label:"上籤",poem:["危險高山行過盡","莫嫌此路有重重","若見蘭桂漸漸發","長蛇反轉變成龍"],
+ meaning:"這段感情曾經歷不少艱難險阻，但此籤鼓勵你不要嫌棄過程的辛苦，只要撐過去，如蘭桂逐漸綻放，原本卑微的緣分也能蛻變成尊貴美滿的姻緣，苦盡甘來。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:35,ganzhi:"己酉",level:3,label:"中平籤",poem:["此事何須用心機","前途變怪自然知","看看此去得和合","漸漸脫出見太平"],
+ meaning:"此籤勸你不必對這段感情耍心機或過度算計，事情的變化自然會讓你看清真相。順其自然發展，關係將漸漸走向和合，原本的困擾也會逐步脫離、歸於平靜。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:36,ganzhi:"己亥",level:1,label:"上上籤",poem:["福如東海壽如山","君爾何須嘆苦難","命內自然逢大吉","祈保分明自平安"],
+ meaning:"這是一支祝福意味濃厚的吉籤，顯示你不必為眼前的感情困擾唉聲嘆氣，命中自有大吉的安排，只要虔誠祈求、行事端正，姻緣自然平安順遂、福壽綿長。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:37,ganzhi:"庚子",level:1,label:"上上籤",poem:["運逢得意身顯變","君爾身中皆有益","一向前途無難事","決意之中保清吉"],
+ meaning:"你目前的感情運勢正在轉好，整個人也會因這段關係而有正面的改變與成長。前途沒有難以跨越的阻礙，只要下定決心去追求或維繫，便能保持清吉平順。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:38,ganzhi:"庚寅",level:2,label:"上籤",poem:["名顯有意在中央","不須祈禱心自安","看看早晚日過後","即時得意在其間"],
+ meaning:"這段感情已有明確的進展跡象，不需要再過度祈求或焦慮不安，只要再給彼此一些時日，好消息很快就會到來，你會在其中感受到稱心如意的甜蜜。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:39,ganzhi:"庚辰",level:3,label:"中平籤",poem:["意中若問神仙路","勸爾且退望高樓","寬心且守寬心坐","必然遇得貴人扶"],
+ meaning:"若你心中對這段感情的走向感到迷惘，此籤勸你先退一步、放寬心情靜觀其變，不要急於強求答案。耐心等待之中，終將遇到能為你穿針引線、助你一臂之力的貴人。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:40,ganzhi:"庚午",level:1,label:"上上籤",poem:["平生富貴成祿位","君家門戶定光輝","此中必定無損失","夫妻百歲喜相隨"],
+ meaning:"這是象徵百年好合的吉籤，顯示這段姻緣穩固長久，雙方門戶都將因這段關係而增添光彩，不會有所損失，是可以攜手共度一生、白頭偕老的美滿緣分。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:41,ganzhi:"庚申",level:2,label:"上籤",poem:["今行到此實難推","歌歌暢飲自徘徊","雞犬相聞消息近","婚姻夙世結成雙"],
+ meaning:"走到今天這一步已是水到渠成、難以推辭，不妨放鬆心情、把握當下的喜悅氛圍。好消息近在咫尺，這段婚姻其實是前世註定的緣分，終將結成連理。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:42,ganzhi:"庚戌",level:5,label:"下下籤",poem:["一重江水一重山","誰知此去路又難","任他改求終不過","是非終久未得安"],
+ meaning:"此籤提醒感情路上恐怕波折不斷，一關過了又是一關，即使不斷嘗試改變方法也難有突破。若彼此之間是非糾葛難解，建議認真思考這段關係是否值得繼續耗費心力。　整體而言，此籤語氣較為保留，顯示這段緣分目前面臨較大的阻礙或不確定性，若一味勉強強求，恐怕徒增雙方的疲憊與傷害，甚至傷了和氣。建議暫時放寬心，不必執著於單一結果或單一對象，月老牽紅線自有其安排的時序；把心力放回自己身上、充實生活、廣結善緣，往往才是迎接下一段好姻緣最踏實的準備。"},
+{id:43,ganzhi:"辛丑",level:3,label:"中平籤",poem:["一年作事急如飛","君爾寬心莫遲疑","貴人還在千里外","音信月中漸漸知"],
+ meaning:"近來你在感情上的心情或許起伏很快、患得患失，此籤勸你放寬心、不必焦急猶豫。你的貴人（良緣對象）此刻或許還在遠方，但消息將在不久後逐漸傳來，值得耐心等待。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:44,ganzhi:"辛卯",level:3,label:"中平籤",poem:["客到前途多得利","君爾何故兩相疑","雖是中間逢進退","月出光輝得運時"],
+ meaning:"有新的緣分即將到來，對彼此都會是有利的發展，此籤反問你何必彼此猜疑、患得患失。過程中或許會有進退猶豫的時刻，但終將守得月出光輝，迎來時來運轉的好時機。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:45,ganzhi:"辛巳",level:1,label:"上上籤",poem:["花開今已結成果","富貴榮華終到老","君子小人相會合","萬事清吉莫煩惱"],
+ meaning:"這段感情已經開花結果，象徵能夠攜手共度富貴榮華直到年老，是相當圓滿的姻緣籤。即使身邊偶有雜音或不看好的人，也無須為此煩惱，萬事終將清吉平順。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:46,ganzhi:"辛未",level:1,label:"上上籤",poem:["功名得意與君顯","前途富貴喜安然","若遇一輪明月照","十五團圓光滿天"],
+ meaning:"此籤象徵感情運勢正旺，如同十五的明月團圓皎潔，象徵你們的關係將走向圓滿與安穩。無論是感情或家庭方面，都將顯現喜氣洋洋、富貴安然的氣象。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:47,ganzhi:"辛酉",level:1,label:"上上籤",poem:["君爾何須問聖跡","自己心中皆有益","於今且看月中旬","凶事脫出化成吉"],
+ meaning:"你其實心中早已有答案，不必再向外四處求問。此籤顯示原本擔心的凶事或阻礙，將在近期逐漸化解，轉凶為吉，是值得安心的好兆頭。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:48,ganzhi:"辛亥",level:4,label:"中下籤",poem:["陽世作事未和同","雲遮月色正朦朧","心中意欲前途去","只恐命內運未通"],
+ meaning:"目前彼此的想法或步調尚未完全一致，如雲霧遮月般關係顯得朦朧不明。雖然你心中很想推進這段感情，但此籤提醒眼下的運勢尚未真正打通，操之過急恐怕徒勞。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:49,ganzhi:"壬子",level:3,label:"中平籤",poem:["言語雖多不可從","風雲靜處未行龍","暗中終得明消息","君爾何須問重重"],
+ meaning:"對方或旁人的言語或許很多，但不必照單全收，此刻局勢仍如風雲未動的潛龍，尚待時機。暗地裡好消息其實已在醞釀，不必反覆猜疑追問，靜待自然明朗。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:50,ganzhi:"壬寅",level:2,label:"上籤",poem:["佛前發誓無異心","且看前途得好音","此物原來本是鐵","也能變化得成金"],
+ meaning:"只要對這段感情發自內心真誠以待、心無二意，前途便能傳來好消息。此籤也象徵即使目前條件普通，只要用心經營，終能點鐵成金，修成美滿姻緣。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:51,ganzhi:"壬辰",level:3,label:"中平籤",poem:["東西南北不堪行","前途此事正可當","勸君把定莫煩惱","家門自有保安康"],
+ meaning:"眼前感情之路四處碰壁、進退兩難，但此籤也指出這正是需要沉住氣的時候，不必為此煩惱憂心，只要穩住心性，家庭與感情終將平安穩妥。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:52,ganzhi:"壬午",level:3,label:"中平籤",poem:["功名事業本由天","不須掛念意懸懸","若問中間遲與速","風雲際會在眼前"],
+ meaning:"感情的緣分與時機本就有天意安排，不需要整天懸念掛心。若問這段緣分何時會有進展，此籤顯示風雲際會的時刻已在不遠處，值得再耐心等一等。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"},
+{id:53,ganzhi:"壬申",level:1,label:"上上籤",poem:["看君來問心中事","積善之家慶有餘","運亨財子雙雙至","指日喜氣溢門閭"],
+ meaning:"此籤顯示你平日行事良善、積德有餘，姻緣運勢因此特別亨通，不僅感情將有好結果，甚至連帶子女緣、家運都會跟著興旺，喜氣將在不久後洋溢家門。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:54,ganzhi:"壬戌",level:2,label:"上籤",poem:["孤燈寂寂夜沉沉","萬事清吉萬事成","若逢陰中有善果","燒得好香達神明"],
+ meaning:"目前或許正經歷一段孤單寂寞、感情尚未明朗的時期，但此籤保證只要行事清白正直，終將萬事有成。誠心祈求、多做善事，終能感動神明，為你帶來善緣善果。　整體而言，此籤顯示緣分正朝正面方向發展，只是仍需要一點耐心與主動的心意去澆灌，才能真正開花結果。建議放下得失心，把重心放在真誠溝通與長久陪伴上，不必急著在短時間內看到結果；保持信心、持續用心經營，好消息通常會在你最放鬆自在的時候悄悄降臨，值得再多一份堅持。"},
+{id:55,ganzhi:"癸丑",level:4,label:"中下籤",poem:["須知進退總言虛","看看發暗未必全","珠玉深藏還未變","心中但得枉徒然"],
+ meaning:"此籤提醒目前局勢尚不明朗，對方的進退態度可能都還不夠真實明確，好的緣分可能還深藏未現。若一味在心中猜測期待，恐怕徒然空等，建議務實一點看待現況。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:56,ganzhi:"癸卯",level:5,label:"下下籤",poem:["病中若得苦心勞","到底完全總未遭","去後不須回頭問","心中事務盡消磨"],
+ meaning:"此籤語氣較為沉重，暗示這段感情如久病纏身，即使費盡苦心也未必能有圓滿結果。若緣分已盡，不必執著回頭追問原因，讓過去的心事隨時間慢慢消磨釋懷，才能重新出發。　整體而言，此籤語氣較為保留，顯示這段緣分目前面臨較大的阻礙或不確定性，若一味勉強強求，恐怕徒增雙方的疲憊與傷害，甚至傷了和氣。建議暫時放寬心，不必執著於單一結果或單一對象，月老牽紅線自有其安排的時序；把心力放回自己身上、充實生活、廣結善緣，往往才是迎接下一段好姻緣最踏實的準備。"},
+{id:57,ganzhi:"癸巳",level:1,label:"上上籤",poem:["勸君把定心莫虛","前途清吉得運時","到底中間無大事","又遇神仙守安居"],
+ meaning:"此籤勸你安定心神、不要三心兩意，前途將迎來清吉的好運道。這段感情發展途中不會有太大的波折，反而會有貴人在一旁默默守護，助你安穩度過。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:58,ganzhi:"癸未",level:4,label:"中下籤",poem:["蛇身意欲變成龍","只恐命內運未通","久病且作寬心坐","言語雖多不可從"],
+ meaning:"此籤顯示你渴望這段感情能有所提升或突破，但目前運勢尚未真正打通，操之過急難以如願。若感情已陷入僵局多時，建議放寬心靜待時機，旁人的意見也不必照單全收。　整體而言，此籤提醒近期感情路上恐有一些考驗與磨合，不宜在情緒高漲時倉促做出重大決定。建議先冷靜下來檢視這段關係中彼此的付出是否對等，若心中有需要溝通的心結，誠實表達勝過悶不吭聲；同時也要照顧好自己的情緒與生活步調，別讓一時的挫折影響了你對感情整體的信心與方向感。"},
+{id:59,ganzhi:"癸酉",level:1,label:"上上籤",poem:["有心作福莫遲疑","求名清吉正當時","此事必能成會合","財寶自然喜相隨"],
+ meaning:"只要你誠心積善、把握當下行動，不再猶豫遲疑，此刻正是感情修成正果的絕佳時機。這段緣分必能順利會合，而且會伴隨著福氣與好運一同到來。　整體而言，此籤是月老示下的吉兆，顯示這段緣分已具備相當穩固的基礎，時機也對你相當有利。建議把握眼前的順境，主動表達心意、多創造相處與見面的機會，同時別忘了心存感恩，誠心答謝月老牽線之恩；若目前尚未有明確對象，也可多參與親友聚會或適合的社交場合，好緣分往往就在不經意間悄悄降臨，切莫因猶豫而錯過。"},
+{id:60,ganzhi:"癸亥",level:3,label:"中平籤",poem:["月出光輝本清吉","浮雲總是蔽陰色","戶內用心再作福","當官分理便有益"],
+ meaning:"這段感情本質是清吉美好的，如皎潔明月，只是偶爾會被浮雲（誤會、外界干擾）暫時遮蔽。此籤勸你在家庭生活與相處細節上多用心經營、廣結善緣，若遇爭執，理性溝通處理便能對關係有益。　整體而言，此籤顯示目前的姻緣運勢正處於觀察與磨合期，好壞尚未真正定案，關鍵仍在雙方是否都願意用心經營這段關係。建議此時不宜躁進求快，也不必過度悲觀灰心，不妨透過日常相處多了解彼此的價值觀與生活習慣，讓時間自然篩選、沉澱出最適合彼此的答案，急不得，也放不得。"}
+];
+
+/* ---------- 抽籤 logic ---------- */
+const drawBtn=document.getElementById('drawBtn');
+const cup=document.getElementById('cup');
+const slipPanel=document.getElementById('slipPanel');
+const sticks=document.querySelectorAll('.stick');
+
+drawBtn.addEventListener('click',()=>{
+  unlockAudio();
+  playTock();
+  drawBtn.disabled=true;
+  cup.classList.add('shaking');
+  playStickShake(950);
+
+  setTimeout(()=>{
+    cup.classList.remove('shaking');
+    const flyIndex=Math.floor(Math.random()*sticks.length);
+    sticks[flyIndex].classList.add('flying');
+    playWhoosh();
+
+    setTimeout(()=>{
+      const chosen = SLIPS[Math.floor(Math.random()*SLIPS.length)];
+
+      const marriageMap={1:"大吉",2:"吉",3:"普",4:"慎",5:"凶"};
+      const fateMap={1:"深厚",2:"漸濃",3:"未定",4:"尚淺",5:"淺薄"};
+      const gradeClass = chosen.level<=2 ? "grade-good" : (chosen.level===3 ? "grade-mid" : "grade-bad");
+      const chimeTier = chosen.level<=2 ? 1 : (chosen.level===3 ? 2 : 3);
+
+      slipPanel.innerHTML = `
+        <div class="slip-plaque">
+          <div class="site-name">月老線上求籤</div>
+          <div class="kind-name">月　老　尊　神　靈　籤</div>
+        </div>
+        <div class="slip-body">
+          <div class="slip-num-vert">第${chosen.id}首</div>
+          <div class="tag-vert">
+            <div class="tag-item ${gradeClass}">籤　運：<b>${chosen.label}</b></div>
+            <div class="tag-item ${gradeClass}">婚　姻：<b>${marriageMap[chosen.level]}</b></div>
+            <div class="tag-item ${gradeClass}">緣　份：<b>${fateMap[chosen.level]}</b></div>
+          </div>
+          <div class="poem-vert">
+            ${chosen.poem.map(l=>`<span>${l}</span>`).join('')}
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <span class="ganzhi-tag">歲次　${chosen.ganzhi}</span>
+        </div>
+        <div class="meaning-block">
+          <div class="meaning-title">意　解</div>
+          <div class="meaning-text">${chosen.meaning}</div>
+        </div>
+      `;
+      playChime(chimeTier);
+      slipPanel.classList.remove('hidden');
+      slipPanel.scrollIntoView({behavior:'smooth', block:'center'});
+
+      drawBtn.textContent='求　籤　完　成';
+      drawBtn.disabled=true;
+
+      // reset sticks for next time
+      setTimeout(()=>{
+        sticks[flyIndex].classList.remove('flying');
+      },1200);
+    },1000);
+  },1000);
+});
+</script>
+
+</body>
+</html>
