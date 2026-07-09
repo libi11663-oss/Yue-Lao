@@ -280,6 +280,33 @@
     letter-spacing:.5px;
   }
 
+  .offering-block{
+    margin:22px 20px 0;padding:20px 18px 22px;
+    border-top:1px dashed rgba(201,161,90,.45);
+    text-align:center;
+    background:linear-gradient(180deg, rgba(201,161,90,.08), rgba(0,0,0,.08));
+  }
+  .offering-title{
+    font-family:"Ma Shan Zheng",cursive;color:var(--gold-bright);
+    font-size:24px;letter-spacing:4px;margin-bottom:8px;
+  }
+  .offering-blessing{
+    color:var(--paper-2);font-size:15px;line-height:1.9;margin:0 0 16px;letter-spacing:1px;
+  }
+  .offering-pay{
+    font-family:"Noto Serif TC",serif;font-weight:700;font-size:15px;letter-spacing:2px;
+    color:var(--lacquer);background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+    border:0;border-radius:4px;padding:12px 28px;cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.35);
+  }
+  .offering-pay:disabled{opacity:.55;cursor:not-allowed;}
+  .offering-note{
+    color:var(--paper-2);opacity:.68;font-size:12px;line-height:1.7;margin:12px 0 0;
+  }
+  .offering-status{
+    min-height:20px;color:var(--gold-bright);font-size:13px;line-height:1.6;margin-top:10px;
+  }
+
   .footnote{margin-top:34px;font-size:12px;color:var(--paper-2);opacity:.55;letter-spacing:1px;}
 
   @media (max-width:480px){
@@ -371,6 +398,14 @@
 
   <!-- STEP 3: 結果 -->
   <div class="slip hidden" id="slipPanel"></div>
+
+  <div class="offering-block" id="offeringBlock">
+    <div class="offering-title">姻緣香油錢隨喜</div>
+    <p class="offering-blessing">香油錢隨喜，祝早日脫單，愛情圓滿</p>
+    <button class="offering-pay" id="offeringPayBtn" type="button">信用卡隨喜</button>
+    <p class="offering-note">將前往金流安全頁面付款，本頁不會儲存信用卡資料。</p>
+    <div class="offering-status" id="offeringStatus" aria-live="polite"></div>
+  </div>
 
   <div class="footnote">採用台灣廟宇通行之「六十甲子籤」全套六十首 · 姻緣詳解僅供參考，仍需自己用心經營 · 誠心祈願，好運自來</div>
 </div>
@@ -804,10 +839,74 @@ const SLIPS=[
 ];
 
 /* ---------- 抽籤 logic ---------- */
+const PAYMENT_FUNCTION_URL = 'https://upjwcezmgjijnthciywz.supabase.co/functions/v1/payuni-create-order';
+const OFFERING_AMOUNT = 100;
 const drawBtn=document.getElementById('drawBtn');
 const cup=document.getElementById('cup');
 const slipPanel=document.getElementById('slipPanel');
 const sticks=document.querySelectorAll('.stick');
+
+function submitPayuniForm({ payuniApiUrl, merId, tradeInfo, tradeSha }){
+  const form=document.createElement('form');
+  form.method='POST';
+  form.action=payuniApiUrl;
+  form.style.display='none';
+  [
+    ['MerID', merId],
+    ['TradeInfo', tradeInfo],
+    ['TradeSha', tradeSha],
+    ['Version', '1.0']
+  ].forEach(([name,value])=>{
+    const input=document.createElement('input');
+    input.type='hidden';
+    input.name=name;
+    input.value=value;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
+async function startOfferingPayment(){
+  unlockAudio();
+  playTock();
+  const btn=document.getElementById('offeringPayBtn');
+  const status=document.getElementById('offeringStatus');
+  if(btn){ btn.disabled=true; btn.textContent='前往付款中'; }
+  if(status){ status.textContent='正在建立付款頁面...'; }
+  try{
+    const res=await fetch(PAYMENT_FUNCTION_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        amount:OFFERING_AMOUNT,
+        orderDesc:'Yue Lao Offering',
+        returnUrl:window.location.href
+      })
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){ throw new Error(data.message || data.error || '付款建立失敗'); }
+    const paymentUrl=data.paymentUrl || data.checkoutUrl || data.url;
+    if(paymentUrl){
+      window.location.href=paymentUrl;
+      return;
+    }
+    if(data.payuniApiUrl && data.merId && data.tradeInfo && data.tradeSha){
+      submitPayuniForm(data);
+      return;
+    }
+    throw new Error('後端沒有回傳付款資料');
+  }catch(err){
+    if(status){ status.textContent=err.message || '付款暫時無法使用，請稍後再試。'; }
+    if(btn){ btn.disabled=false; btn.textContent='信用卡隨喜'; }
+  }
+}
+
+document.addEventListener('click',evt=>{
+  if(evt.target.closest('#offeringPayBtn')){
+    startOfferingPayment();
+  }
+});
 
 drawBtn.addEventListener('click',()=>{
   unlockAudio();

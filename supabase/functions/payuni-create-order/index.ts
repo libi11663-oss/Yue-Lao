@@ -5,6 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const allowedAmounts = new Set([100, 300, 600]);
+const defaultReturnUrl = Deno.env.get('SITE_URL') || 'https://yuelao.tw';
+
 function buf2hex(buffer: Uint8Array) {
   return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
 }
@@ -42,25 +45,61 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, orderDesc, returnUrl } = await req.json()
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
 
-    const merId = Deno.env.get('PAYUNI_MER_ID')!
-    const hashKey = Deno.env.get('PAYUNI_HASH_KEY')!
-    const ivKey = Deno.env.get('PAYUNI_IV_KEY')!
+    const { amount, orderDesc, returnUrl } = await req.json()
+    const offeringAmount = Number(amount);
+
+    if (!allowedAmounts.has(offeringAmount)) {
+      return new Response(JSON.stringify({ error: 'Invalid offering amount' }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const merId = Deno.env.get('PAYUNI_MER_ID')
+    const hashKey = Deno.env.get('PAYUNI_HASH_KEY')
+    const ivKey = Deno.env.get('PAYUNI_IV_KEY')
+    const projectRef = Deno.env.get('SUPABASE_PROJECT_REF') || 'upjwcezmgjijnthciywz'
+
+    const missingSecrets = [
+      ['PAYUNI_MER_ID', merId],
+      ['PAYUNI_HASH_KEY', hashKey],
+      ['PAYUNI_IV_KEY', ivKey],
+    ].filter(([, value]) => !value).map(([name]) => name)
+
+    if (missingSecrets.length > 0) {
+      return new Response(JSON.stringify({
+        error: 'Payment secrets are not configured',
+        missingSecrets,
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
 
     const timeStamp = Math.floor(Date.now() / 1000);
     const merTradeNo = `YL${Date.now()}`;
+    const safeReturnUrl =
+      typeof returnUrl === 'string' && returnUrl.startsWith('https://')
+        ? returnUrl
+        : defaultReturnUrl;
 
     const tradeParams = new URLSearchParams({
       MerID: merId,
       Version: "1.0",
       RespondType: "JSON",
       MerTradeNo: merTradeNo,
-      Amt: String(amount),
-      TradeDesc: orderDesc,
+      Amt: String(offeringAmount),
+      TradeDesc: typeof orderDesc === 'string' ? orderDesc : 'Yue Lao Offering',
       TimeStamp: String(timeStamp),
-      ReturnURL: returnUrl,
-      NotifyURL: `https://${Deno.env.get('SUPABASE_PROJECT_REF')}.supabase.co/functions/v1/payuni-notify`,
+      ReturnURL: safeReturnUrl,
+      NotifyURL: `https://${projectRef}.supabase.co/functions/v1/payuni-notify`,
     });
 
     const tradeInfo = await encryptAESGCM(tradeParams.toString(), hashKey, ivKey);
@@ -74,7 +113,8 @@ serve(async (req) => {
         payuniApiUrl,
         merId,
         tradeInfo,
-        tradeSha
+        tradeSha,
+        merTradeNo
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
